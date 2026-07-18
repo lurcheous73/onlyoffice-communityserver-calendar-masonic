@@ -1,0 +1,275 @@
+--- /app/onlyoffice/selected-months-dev/backups/20260714-173729/fullcalendar.js.before	2015-04-17 16:07:13.000000000 +0000
++++ /app/onlyoffice/selected-months-dev/fullcalendar.selected-months.js	2026-07-14 17:37:29.802103690 +0000
+@@ -7828,6 +7828,37 @@
+ 					 "</div>");
+ 					 
+ 		_settings.find(".fc-month-radio").html(html);
++
++		var selectedMonthsHtml =
++		    "<div class='fc-selected-months hidden' " +
++		         "style='margin-top: 12px; padding-top: 10px; border-top: 1px solid #d1d1d1;'>" +
++		        "<label style='display: block; margin-bottom: 8px;'>" +
++		            "<input type='checkbox' class='fc-selected-months-enable' />&nbsp;" +
++		            "Only in selected months" +
++		        "</label>" +
++		        "<div class='fc-selected-months-grid hidden' " +
++		             "style='display: grid; grid-template-columns: repeat(4, minmax(55px, 1fr)); gap: 6px 10px;'>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='1' checked='checked' /> Jan</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='2' checked='checked' /> Feb</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='3' checked='checked' /> Mar</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='4' checked='checked' /> Apr</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='5' checked='checked' /> May</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='6' checked='checked' /> Jun</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='7' checked='checked' /> Jul</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='8' checked='checked' /> Aug</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='9' checked='checked' /> Sep</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='10' checked='checked' /> Oct</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='11' checked='checked' /> Nov</label>" +
++		            "<label><input type='checkbox' class='fc-selected-month' value='12' checked='checked' /> Dec</label>" +
++		        "</div>" +
++		    "</div>";
++
++		_settings.find(".fc-month-radio").append(selectedMonthsHtml);
++
++		_settings.find(".fc-selected-months-enable").on("change", function() {
++		    _settings.find(".fc-selected-months-grid")
++		        .toggleClass("hidden", !$(this).prop("checked"));
++		});
+ 		_settings.find(".only-day").prop("checked", true);
+ 		
+ 		_settings.find(".only-day-label").on("click", function() {
+@@ -7855,6 +7886,7 @@
+ 			}
+ 			
+ 			dayRuleObject.Order = dayRuleIndex;
++			_settings.find(".fc-selected-months").removeClass("hidden");
+ 		});
+ 		
+ 		_settings.find(".only-day").on("click", function () {
+@@ -7870,6 +7902,29 @@
+ 		}
+ 		
+ 		_setSelectedDays.call(this, dayIndexArr.length ? dayIndexArr : [dayOfWeek]);
++
++		var selectedMonthsMode =
++		    repeatRule.Freq == ASC.Api.iCal.Frequency.Yearly &&
++		    repeatRule.ByMonth != undefined &&
++		    repeatRule.ByMonth.length > 0 &&
++		    repeatRule.ByDay.length == 1 &&
++		    repeatRule.ByDay[0].Order != 0;
++
++		_settings.find(".fc-selected-month").each(function() {
++		    var monthNumber = parseInt($(this).val(), 10);
++		    $(this).prop(
++		        "checked",
++		        selectedMonthsMode
++		            ? repeatRule.ByMonth.indexOf(monthNumber) != -1
++		            : true
++		    );
++		});
++
++		_settings.find(".fc-selected-months-enable")
++		    .prop("checked", selectedMonthsMode);
++
++		_settings.find(".fc-selected-months-grid")
++		    .toggleClass("hidden", !selectedMonthsMode);
+ 		
+ 		// set default view
+ 		if ((repeatRule.Freq == ASC.Api.iCal.Frequency.Never) || (repeatRule.Freq == ASC.Api.iCal.Frequency.Daily)) {
+@@ -7884,7 +7939,10 @@
+ 			_settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_weeks);
+ 			_settings.find(".fc-interval-label").text(rs.dialogIntervalOption_week);
+ 		}
+-		else if (repeatRule.Freq == ASC.Api.iCal.Frequency.Monthly) {
++		else if (
++		    repeatRule.Freq == ASC.Api.iCal.Frequency.Monthly ||
++		    selectedMonthsMode
++		) {
+ 			_showMonthSections.call(_this);
+ 			dwm_current = dwm.month;
+ 			_settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_months);
+@@ -8423,6 +8481,39 @@
+ 		if ((_settings.find(".fc-month-radio.hidden").length == 0) && (dayRuleObject != undefined)) {
+ 			repeatRule.ByDay.push(dayRuleObject);
+ 		}
++
++		var selectedMonthsEnabled =
++		    _settings.find(".fc-month-radio.hidden").length == 0 &&
++		    dayRuleObject != undefined &&
++		    _settings.find(".fc-selected-months-enable").prop("checked");
++
++		if (selectedMonthsEnabled) {
++		    var selectedMonths = new Array();
++
++		    _settings.find(".fc-selected-month:checked").each(function() {
++		        var monthNumber = parseInt($(this).val(), 10);
++
++		        if (!isNaN(monthNumber) &&
++		            monthNumber >= 1 &&
++		            monthNumber <= 12 &&
++		            selectedMonths.indexOf(monthNumber) == -1) {
++		            selectedMonths.push(monthNumber);
++		        }
++		    });
++
++		    selectedMonths.sort(function(a, b) {
++		        return a - b;
++		    });
++
++		    if (selectedMonths.length == 0) {
++		        alert("Select at least one month.");
++		        return false;
++		    }
++
++		    repeatRule.Freq = ASC.Api.iCal.Frequency.Yearly;
++		    repeatRule.Interval = 1;
++		    repeatRule.ByMonth = selectedMonths;
++		}
+ 		
+ 		if (_settings.find(".fc-end-date.hidden").length == 0) {
+ 			var dates = {};
+@@ -10467,6 +10558,37 @@
+ 					 "</div>");
+ 					 
+         _settings.find(".fc-month-radio").html(html);
++
++        var selectedMonthsHtml =
++            "<div class='fc-selected-months hidden' " +
++                 "style='margin-top: 12px; padding-top: 10px; border-top: 1px solid #d1d1d1;'>" +
++                "<label style='display: block; margin-bottom: 8px;'>" +
++                    "<input type='checkbox' class='fc-selected-months-enable' />&nbsp;" +
++                    "Only in selected months" +
++                "</label>" +
++                "<div class='fc-selected-months-grid hidden' " +
++                     "style='display: grid; grid-template-columns: repeat(4, minmax(55px, 1fr)); gap: 6px 10px;'>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='1' checked='checked' /> Jan</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='2' checked='checked' /> Feb</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='3' checked='checked' /> Mar</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='4' checked='checked' /> Apr</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='5' checked='checked' /> May</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='6' checked='checked' /> Jun</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='7' checked='checked' /> Jul</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='8' checked='checked' /> Aug</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='9' checked='checked' /> Sep</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='10' checked='checked' /> Oct</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='11' checked='checked' /> Nov</label>" +
++                    "<label><input type='checkbox' class='fc-selected-month' value='12' checked='checked' /> Dec</label>" +
++                "</div>" +
++            "</div>";
++
++        _settings.find(".fc-month-radio").append(selectedMonthsHtml);
++
++        _settings.find(".fc-selected-months-enable").on("change", function() {
++            _settings.find(".fc-selected-months-grid")
++                .toggleClass("hidden", !$(this).prop("checked"));
++        });
+ 		_settings.find(".only-day").prop("checked", true);
+ 		
+         _settings.find(".only-day-label").on("click", function() {
+@@ -10478,6 +10600,9 @@
+         });
+ 		
+         dayRuleObject = undefined;
++        _settings.find(".fc-selected-months").addClass("hidden");
++        _settings.find(".fc-selected-months-enable").prop("checked", false);
++        _settings.find(".fc-selected-months-grid").addClass("hidden");
+         _settings.find(".each-day").on("click", function () {
+             dayRuleObject = _getRepeatDayByIndex.call(_this, dayOfWeek);
+             var dayRuleIndex = 0;
+@@ -10494,10 +10619,14 @@
+             }
+ 			
+             dayRuleObject.Order = dayRuleIndex;
++            _settings.find(".fc-selected-months").removeClass("hidden");
+         });
+ 		
+         _settings.find(".only-day").on("click", function () {
+             dayRuleObject = undefined;
++            _settings.find(".fc-selected-months").addClass("hidden");
++            _settings.find(".fc-selected-months-enable").prop("checked", false);
++            _settings.find(".fc-selected-months-grid").addClass("hidden");
+         });
+ 		
+         _setRepeatInterval.call(this, repeatRule.Interval, 31);
+@@ -10509,6 +10638,29 @@
+         }
+ 		
+         _setSelectedDays.call(this, dayIndexArr.length ? dayIndexArr : [dayOfWeek]);
++
++        var selectedMonthsMode =
++            repeatRule.Freq == ASC.Api.iCal.Frequency.Yearly &&
++            repeatRule.ByMonth != undefined &&
++            repeatRule.ByMonth.length > 0 &&
++            repeatRule.ByDay.length == 1 &&
++            repeatRule.ByDay[0].Order != 0;
++
++        _settings.find(".fc-selected-month").each(function() {
++            var monthNumber = parseInt($(this).val(), 10);
++            $(this).prop(
++                "checked",
++                selectedMonthsMode
++                    ? repeatRule.ByMonth.indexOf(monthNumber) != -1
++                    : true
++            );
++        });
++
++        _settings.find(".fc-selected-months-enable")
++            .prop("checked", selectedMonthsMode);
++
++        _settings.find(".fc-selected-months-grid")
++            .toggleClass("hidden", !selectedMonthsMode);
+ 		
+         // set default view
+         if ((repeatRule.Freq == ASC.Api.iCal.Frequency.Never) || (repeatRule.Freq == ASC.Api.iCal.Frequency.Daily)) {
+@@ -10523,7 +10675,10 @@
+             _settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_weeks);
+             _settings.find(".fc-interval-label").text(rs.dialogIntervalOption_week);
+         }
+-        else if (repeatRule.Freq == ASC.Api.iCal.Frequency.Monthly) {
++        else if (
++            repeatRule.Freq == ASC.Api.iCal.Frequency.Monthly ||
++            selectedMonthsMode
++        ) {
+             _showMonthSections.call(_this);
+             dwm_current = dwm.month;
+             _settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_months);
+@@ -11142,6 +11297,39 @@
+         if ((_settings.find(".fc-month-radio.hidden").length == 0) && (dayRuleObject != undefined)) {
+             repeatRule.ByDay.push(dayRuleObject);
+         }
++
++        var selectedMonthsEnabled =
++            _settings.find(".fc-month-radio.hidden").length == 0 &&
++            dayRuleObject != undefined &&
++            _settings.find(".fc-selected-months-enable").prop("checked");
++
++        if (selectedMonthsEnabled) {
++            var selectedMonths = new Array();
++
++            _settings.find(".fc-selected-month:checked").each(function() {
++                var monthNumber = parseInt($(this).val(), 10);
++
++                if (!isNaN(monthNumber) &&
++                    monthNumber >= 1 &&
++                    monthNumber <= 12 &&
++                    selectedMonths.indexOf(monthNumber) == -1) {
++                    selectedMonths.push(monthNumber);
++                }
++            });
++
++            selectedMonths.sort(function(a, b) {
++                return a - b;
++            });
++
++            if (selectedMonths.length == 0) {
++                alert("Select at least one month.");
++                return false;
++            }
++
++            repeatRule.Freq = ASC.Api.iCal.Frequency.Yearly;
++            repeatRule.Interval = 1;
++            repeatRule.ByMonth = selectedMonths;
++        }
+ 		
+         if (_settings.find(".fc-end-date.hidden").length == 0) {
+             var dates = {};
