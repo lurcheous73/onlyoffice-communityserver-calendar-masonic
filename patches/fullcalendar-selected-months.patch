@@ -1,6 +1,8 @@
---- /app/onlyoffice/selected-months-dev/backups/20260714-173729/fullcalendar.js.before	2015-04-17 16:07:13.000000000 +0000
-+++ /app/onlyoffice/selected-months-dev/fullcalendar.selected-months.js	2026-07-14 17:37:29.802103690 +0000
-@@ -7828,6 +7828,37 @@
+diff --git a/web/studio/ASC.Web.Studio/addons/calendar/UserControls/fullcalendar/fullcalendar.js b/web/studio/ASC.Web.Studio/addons/calendar/UserControls/fullcalendar/fullcalendar.js
+index 159021a..53c2cc4 100644
+--- a/web/studio/ASC.Web.Studio/addons/calendar/UserControls/fullcalendar/fullcalendar.js
++++ b/web/studio/ASC.Web.Studio/addons/calendar/UserControls/fullcalendar/fullcalendar.js
+@@ -7828,6 +7828,37 @@ function EventEditor(calendar, uiBlocker) {
  					 "</div>");
  					 
  		_settings.find(".fc-month-radio").html(html);
@@ -38,7 +40,7 @@
  		_settings.find(".only-day").prop("checked", true);
  		
  		_settings.find(".only-day-label").on("click", function() {
-@@ -7855,6 +7886,7 @@
+@@ -7855,6 +7886,7 @@ function EventEditor(calendar, uiBlocker) {
  			}
  			
  			dayRuleObject.Order = dayRuleIndex;
@@ -46,7 +48,7 @@
  		});
  		
  		_settings.find(".only-day").on("click", function () {
-@@ -7870,6 +7902,29 @@
+@@ -7870,6 +7902,29 @@ function EventEditor(calendar, uiBlocker) {
  		}
  		
  		_setSelectedDays.call(this, dayIndexArr.length ? dayIndexArr : [dayOfWeek]);
@@ -76,7 +78,7 @@
  		
  		// set default view
  		if ((repeatRule.Freq == ASC.Api.iCal.Frequency.Never) || (repeatRule.Freq == ASC.Api.iCal.Frequency.Daily)) {
-@@ -7884,7 +7939,10 @@
+@@ -7884,7 +7939,10 @@ function EventEditor(calendar, uiBlocker) {
  			_settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_weeks);
  			_settings.find(".fc-interval-label").text(rs.dialogIntervalOption_week);
  		}
@@ -88,7 +90,7 @@
  			_showMonthSections.call(_this);
  			dwm_current = dwm.month;
  			_settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_months);
-@@ -8423,6 +8481,39 @@
+@@ -8423,6 +8481,39 @@ function EventEditor(calendar, uiBlocker) {
  		if ((_settings.find(".fc-month-radio.hidden").length == 0) && (dayRuleObject != undefined)) {
  			repeatRule.ByDay.push(dayRuleObject);
  		}
@@ -128,7 +130,48 @@
  		
  		if (_settings.find(".fc-end-date.hidden").length == 0) {
  			var dates = {};
-@@ -10467,6 +10558,37 @@
+@@ -8518,7 +8609,39 @@ function EventEditor(calendar, uiBlocker) {
+                     //_eventObj.repeat.type = parseInt(dlg.editor.repeat.val(), 10);
+                     //_eventObj.alert.type = parseInt(dlg.editor.alert.val(), 10);
+ 
+-                    _eventObj.repeatRule = repeatRule;
++                    var brimstoneState =
++                        window.BRIMSTONE_MASONIC_STATE || {};
++                    var brimstoneEventType =
++                        brimstoneState.eventType || "";
++                    if (brimstoneEventType === "masonic") {
++                        var brimstoneRuleText =
++                            brimstoneState.rule || "";
++
++                        if (!brimstoneRuleText) {
++                            alert("Select at least one meeting month.");
++                            return false;
++                        }
++
++                        try {
++                            var brimstoneRule =
++                                ASC.Api.iCal.ParseRRuleFromString(
++                                    brimstoneRuleText
++                                );
++
++                            if (!brimstoneRule) {
++                                throw new Error("Empty recurrence rule");
++                            }
++
++                            _eventObj.repeatRule = brimstoneRule;
++                        } catch (brimstoneError) {
++                            alert(
++                                "The Masonic recurrence rule could not be created."
++                            );
++                            return false;
++                        }
++                    } else {
++                        _eventObj.repeatRule = repeatRule;
++                    }
+                     _eventObj.alert.type = alertType;
+                 }
+ 
+@@ -10467,6 +10590,37 @@ function EventPage(calendar) {
  					 "</div>");
  					 
          _settings.find(".fc-month-radio").html(html);
@@ -166,7 +209,7 @@
  		_settings.find(".only-day").prop("checked", true);
  		
          _settings.find(".only-day-label").on("click", function() {
-@@ -10478,6 +10600,9 @@
+@@ -10478,6 +10632,9 @@ function EventPage(calendar) {
          });
  		
          dayRuleObject = undefined;
@@ -176,7 +219,7 @@
          _settings.find(".each-day").on("click", function () {
              dayRuleObject = _getRepeatDayByIndex.call(_this, dayOfWeek);
              var dayRuleIndex = 0;
-@@ -10494,10 +10619,14 @@
+@@ -10494,10 +10651,14 @@ function EventPage(calendar) {
              }
  			
              dayRuleObject.Order = dayRuleIndex;
@@ -191,7 +234,7 @@
          });
  		
          _setRepeatInterval.call(this, repeatRule.Interval, 31);
-@@ -10509,6 +10638,29 @@
+@@ -10509,6 +10670,29 @@ function EventPage(calendar) {
          }
  		
          _setSelectedDays.call(this, dayIndexArr.length ? dayIndexArr : [dayOfWeek]);
@@ -221,7 +264,7 @@
  		
          // set default view
          if ((repeatRule.Freq == ASC.Api.iCal.Frequency.Never) || (repeatRule.Freq == ASC.Api.iCal.Frequency.Daily)) {
-@@ -10523,7 +10675,10 @@
+@@ -10523,7 +10707,10 @@ function EventPage(calendar) {
              _settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_weeks);
              _settings.find(".fc-interval-label").text(rs.dialogIntervalOption_week);
          }
@@ -233,7 +276,7 @@
              _showMonthSections.call(_this);
              dwm_current = dwm.month;
              _settings.find(".fc-dwm-selector").find(".fc-selector-link").text(rs.dialogRepeatOn_months);
-@@ -11142,6 +11297,39 @@
+@@ -11142,6 +11329,39 @@ function EventPage(calendar) {
          if ((_settings.find(".fc-month-radio.hidden").length == 0) && (dayRuleObject != undefined)) {
              repeatRule.ByDay.push(dayRuleObject);
          }
@@ -273,3 +316,44 @@
  		
          if (_settings.find(".fc-end-date.hidden").length == 0) {
              var dates = {};
+@@ -11239,7 +11459,39 @@ function EventPage(calendar) {
+         _eventObj.end   = dates.toDate.dateTime;
+ 
+         if (canChangeAlert) {
+-            _eventObj.repeatRule = repeatRule;
++            var brimstoneState =
++                window.BRIMSTONE_MASONIC_STATE || {};
++            var brimstoneEventType =
++                brimstoneState.eventType || "";
++            if (brimstoneEventType === "masonic") {
++                var brimstoneRuleText =
++                    brimstoneState.rule || "";
++
++                if (!brimstoneRuleText) {
++                    alert("Select at least one meeting month.");
++                    return false;
++                }
++
++                try {
++                    var brimstoneRule =
++                        ASC.Api.iCal.ParseRRuleFromString(
++                            brimstoneRuleText
++                        );
++
++                    if (!brimstoneRule) {
++                        throw new Error("Empty recurrence rule");
++                    }
++
++                    _eventObj.repeatRule = brimstoneRule;
++                } catch (brimstoneError) {
++                    alert(
++                        "The Masonic recurrence rule could not be created."
++                    );
++                    return false;
++                }
++            } else {
++                _eventObj.repeatRule = repeatRule;
++            }
+             _eventObj.alert.type = alertType;
+         }
+ 

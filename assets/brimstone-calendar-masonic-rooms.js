@@ -1,6 +1,6 @@
 /*
- * Brimstone Cottage Masonic Calendar rooms UI.
- * Phase 2C1: room selectors only.
+ * Brimstone Cottage Masonic Calendar rooms helper.
+ * Phase 2C2: room selectors and native Location synchronisation.
  */
 (function () {
     "use strict";
@@ -47,6 +47,45 @@
         return html;
     }
 
+    function selectedRooms($, panel, selector) {
+        var values = [];
+
+        panel.find(selector + ":checked").each(function () {
+            values.push($(this).val());
+        });
+
+        return values;
+    }
+
+    function formatLocation(values) {
+        if (values.length === 0) {
+            return "";
+        }
+
+        if (values.length === 1) {
+            return values[0];
+        }
+
+        if (values.length === 2) {
+            return values[0] + " and " + values[1];
+        }
+
+        return values.slice(0, -1).join(", ") +
+            " and " +
+            values[values.length - 1];
+    }
+
+    function setLocation(input, value) {
+        if (!input.length || input.val() === value) {
+            return;
+        }
+
+        input
+            .val(value)
+            .trigger("input")
+            .trigger("change");
+    }
+
     function install() {
         var $ = window.jq || window.jQuery;
 
@@ -56,16 +95,30 @@
 
         $(".editor").each(function () {
             var editor = $(this);
+
             var panel = editor.find(
                 ".brimstone-masonic-panel"
             ).first();
 
+            var eventType = editor.find(
+                ".brimstone-event-type select"
+            ).first();
+
             if (
                 !panel.length ||
+                !eventType.length ||
                 editor.find(".brimstone-masonic-rooms").length
             ) {
                 return;
             }
+
+            var locationRow = editor.find(
+                ".location"
+            ).first();
+
+            var locationInput = editor.find(
+                ".location input"
+            ).first();
 
             var installation = panel.find(
                 ".brimstone-masonic-installation"
@@ -86,6 +139,13 @@
                         roomGridHtml(
                             "brimstone-masonic-room"
                         ) +
+                    '</div>' +
+
+                    '<div style="margin-top:8px;font-size:12px;' +
+                        'opacity:0.8;">' +
+
+                        'Selections are stored in the normal ' +
+                        'Location field.' +
                     '</div>' +
                 '</div>'
             );
@@ -125,6 +185,67 @@
             } else {
                 installationDetails.append(installationRooms);
             }
+
+            var previousNormalLocation =
+                locationInput.length ?
+                    locationInput.val() :
+                    "";
+
+            var wasMasonic = false;
+
+            function syncRegularRooms() {
+                var values = selectedRooms(
+                    $,
+                    panel,
+                    ".brimstone-masonic-room"
+                );
+
+                setLocation(
+                    locationInput,
+                    formatLocation(values)
+                );
+            }
+
+            function updateEventType() {
+                var isMasonic =
+                    eventType.val() === "masonic";
+
+                if (isMasonic && !wasMasonic) {
+                    previousNormalLocation =
+                        locationInput.length ?
+                            locationInput.val() :
+                            "";
+
+                    syncRegularRooms();
+                }
+
+                if (!isMasonic && wasMasonic) {
+                    setLocation(
+                        locationInput,
+                        previousNormalLocation
+                    );
+                }
+
+                if (locationRow.length) {
+                    locationRow.toggle(!isMasonic);
+                }
+
+                wasMasonic = isMasonic;
+            }
+
+            regularRooms.find(
+                ".brimstone-masonic-room"
+            ).on(
+                "change",
+                syncRegularRooms
+            );
+
+            eventType.on(
+                "change",
+                updateEventType
+            );
+
+            updateEventType();
         });
     }
 

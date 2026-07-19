@@ -1,0 +1,3 @@
+
+# Patch payloads mirror legacy ONLYOFFICE source formatting.
+patches/*.patch -whitespace

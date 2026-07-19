@@ -1,0 +1,53 @@
+diff --git a/web/studio/ASC.Web.Studio/addons/calendar/UserControls/js/recurrence_rule.js b/web/studio/ASC.Web.Studio/addons/calendar/UserControls/js/recurrence_rule.js
+index bbff26a..75376ff 100644
+--- a/web/studio/ASC.Web.Studio/addons/calendar/UserControls/js/recurrence_rule.js
++++ b/web/studio/ASC.Web.Studio/addons/calendar/UserControls/js/recurrence_rule.js
+@@ -57,6 +57,7 @@ ASC.Api.iCal.RecurrenceRule = function() {
+     this.Until = null;
+     this.Interval = 1;
+     this.ByDay = new Array();
++    this.ByMonth = new Array();
+ 
+     this.AdditionalParams = '';
+ 
+@@ -130,6 +131,17 @@ ASC.Api.iCal.RecurrenceRule = function() {
+             }
+         }
+ 
++        if (this.ByMonth != null && this.ByMonth != undefined && this.ByMonth.length > 0) {
++            sb += ';bymonth=';
++
++            for (var monthIndex = 0; monthIndex < this.ByMonth.length; monthIndex++) {
++                if (monthIndex > 0)
++                    sb += ',';
++
++                sb += this.ByMonth[monthIndex];
++            }
++        }
++
+         if (this.AdditionalParams != null && this.AdditionalParams != undefined && this.AdditionalParams != '')
+             sb += this.AdditionalParams;
+ 
+@@ -207,6 +219,22 @@ ASC.Api.iCal.ParseRRuleFromString = function(str) {
+                 }
+                 break;
+ 
++            case 'bymonth':
++                var monthVals = val.split(',');
++                for (var monthIndex = 0; monthIndex < monthVals.length; monthIndex++) {
++                    var month = parseInt(monthVals[monthIndex], 10);
++
++                    if (!isNaN(month) && month >= 1 && month <= 12 &&
++                        rrule.ByMonth.indexOf(month) == -1) {
++                        rrule.ByMonth.push(month);
++                    }
++                }
++
++                rrule.ByMonth.sort(function(a, b) {
++                    return a - b;
++                });
++                break;
++
+             default:
+ 
+                 rrule.AdditionalParams += ';' + pairs[i];
