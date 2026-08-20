@@ -6,7 +6,7 @@ This repository packages the working Brimstone Calendar runtime overlay for ONLY
 
 ```bash
 git pull --ff-only
-sudo ./tools/brimstone-calendar-install.sh
+sudo bash ./tools/brimstone-calendar-install.sh
 ```
 
 The installer is fail-closed for the tested CommunityServer image unless `ALLOW_UNSUPPORTED=1` is explicitly supplied.
@@ -26,7 +26,7 @@ The installer does not alter MySQL, calendar rows, users, mail, Document Server,
 ## Status
 
 ```bash
-sudo ./tools/brimstone-calendar-status.sh
+sudo bash ./tools/brimstone-calendar-status.sh
 ```
 
 The status tool checks the runtime assets, nginx include, nginx syntax, HTTP delivery and the selected-month runtime marker where it can be identified directly.
@@ -36,13 +36,13 @@ The status tool checks the runtime assets, nginx include, nginx syntax, HTTP del
 Rollback the most recent successful install:
 
 ```bash
-sudo ./tools/brimstone-calendar-rollback.sh
+sudo bash ./tools/brimstone-calendar-rollback.sh
 ```
 
 Or select a specific backup:
 
 ```bash
-sudo ./tools/brimstone-calendar-rollback.sh /var/backups/brimstone-calendar/<timestamp>
+sudo bash ./tools/brimstone-calendar-rollback.sh /var/backups/brimstone-calendar/<timestamp>
 ```
 
 Rollback restores the exact pre-install files recorded in that backup manifest and reloads nginx only after `nginx -t` succeeds.
