@@ -31,7 +31,7 @@ Normal operator flow:
 
 ```bash
 git pull --ff-only
-sudo ./tools/brimstone-calendar-install.sh
+sudo bash ./tools/brimstone-calendar-install.sh
 ```
 
 The installer:
@@ -50,7 +50,7 @@ See [`docs/INSTALL.md`](docs/INSTALL.md) for the exact behaviour and recovery pr
 ## Status
 
 ```bash
-sudo ./tools/brimstone-calendar-status.sh
+sudo bash ./tools/brimstone-calendar-status.sh
 ```
 
 ## Rollback
@@ -58,13 +58,13 @@ sudo ./tools/brimstone-calendar-status.sh
 Most recent successful install:
 
 ```bash
-sudo ./tools/brimstone-calendar-rollback.sh
+sudo bash ./tools/brimstone-calendar-rollback.sh
 ```
 
 Or specify a particular backup directory:
 
 ```bash
-sudo ./tools/brimstone-calendar-rollback.sh /var/backups/brimstone-calendar/<timestamp>
+sudo bash ./tools/brimstone-calendar-rollback.sh /var/backups/brimstone-calendar/<timestamp>
 ```
 
 ## Repository layout
